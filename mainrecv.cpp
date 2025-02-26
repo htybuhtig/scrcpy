@@ -9,13 +9,13 @@ using namespace std;
 int width=1120,height=700;
 int sf = 1;
 #include<fstream>
+bool ishide = 0;
+int port = 12345;
 int readinfo(){
 	ifstream ifs("sendinfo.txt");
 	string s;
-	ifs>>width>>height>>sf>>s;
+	ifs>>width>>height>>sf>>s>>port>>ishide;
 	cout<<"is send to:"<<s<<endl;
-	ifs>>s;
-	cout<<"hide window:"<<s<<endl;
 	ifs.close();
 }
 int recvmain(){
@@ -34,7 +34,7 @@ int recvmain(){
     sockaddr_in localAddr;
     localAddr.sin_family = AF_INET;
     localAddr.sin_addr.s_addr = INADDR_ANY;
-    localAddr.sin_port = htons(12345);
+    localAddr.sin_port = htons(port);
     if (bind(sock, (SOCKADDR*)&localAddr, sizeof(localAddr)) == SOCKET_ERROR) {
         std::cerr << "Bind failed: " << WSAGetLastError() << std::endl;
         closesocket(sock);
@@ -71,6 +71,12 @@ int recvmain(){
 			outtextxy(0,height,s1.c_str());
 			outtextxy(260,height,s2.c_str());
 			outtextxy(507,height,s3.c_str());
+			continue;
+		}
+		if(line==9998){
+			zhen++;
+			string s1 = s.substr(4);
+			outtextxy(550,height,s1.c_str());
 			continue;
 		}
 	    for(int j = 0;j<(recvResult-4)/3;j++){

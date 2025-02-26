@@ -3,6 +3,7 @@
 #include <ws2tcpip.h>
 #include <iostream>
 #include"serget.cpp"
+#include"wininfo.cpp"
 using namespace std;
 int width=1120,height=700;
 int sf=2;
@@ -10,6 +11,16 @@ WSADATA wsaData;
 SOCKET sock;
 HDC hdcMem;
 sockaddr_in destAddr;
+#include<fstream>
+bool ishide = 0;
+int port = 12345;
+int readinfo(){
+	ifstream ifs("sendinfo.txt");
+	string s;
+	ifs>>width>>height>>sf>>s>>port>>ishide;
+	cout<<"is send to:"<<s<<endl;
+	ifs.close();
+}
 int sendline(int i){
 	string s="";
 	s+=char(i/1000+'0');
@@ -48,9 +59,11 @@ int sendudp(){
 	}
 	ZeroMemory(&destAddr, sizeof(destAddr));
 	destAddr.sin_family = AF_INET;
-	destAddr.sin_port = htons(12345);
+	destAddr.sin_port = htons(port);
 	destAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	int cnt = 0;
 	while(1){
+		cnt++;
 		//bitblt
 	    hdcMem = CreateCompatibleDC(hdc); // 创建兼容的内存DC
 	    HBITMAP hBitmap = CreateCompatibleBitmap(hdc, width*sf, height*sf); // 创建兼容的位图
@@ -70,20 +83,23 @@ int sendudp(){
 		    WSACleanup();
 		    return 1;
 		}
-		Sleep(50);
+		if(cnt%8==0){
+			s = "9998"+gethostname();
+			const char* data1 = s.c_str();
+			int dataSize1 = strlen(data1);
+			int sent1 = sendto(sock, data1, dataSize1, 0, (SOCKADDR*)&destAddr, sizeof(destAddr));
+			if (sent1 == SOCKET_ERROR) {
+			    cerr << "Send failed: " << WSAGetLastError() << endl;
+			    closesocket(sock);
+			    WSACleanup();
+			    return 1;
+			}
+		}
+
 	}
 
 	closesocket(sock);
 	WSACleanup();
-}
-#include<fstream>
-bool ishide = 0;
-int readinfo(){
-	ifstream ifs("sendinfo.txt");
-	string s;
-	ifs>>width>>height>>sf>>s>>ishide;
-	cout<<"is send to:"<<s<<endl;
-	ifs.close();
 }
 #include<windows.h>
 int hidewin(){
