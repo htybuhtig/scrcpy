@@ -21,7 +21,19 @@ int readinfo(){
 	cout<<"is send to:"<<s<<endl;
 	ifs.close();
 }
-int sendline(int i){
+int sendmsg(string s){
+	const char* data = s.c_str();
+	int dataSize = strlen(data);
+	int sent = sendto(sock, data, dataSize, 0, (SOCKADDR*)&destAddr, sizeof(destAddr));
+	if (sent == SOCKET_ERROR) {
+	    cerr << "Send failed: " << WSAGetLastError() << endl;
+	    closesocket(sock);
+	    WSACleanup();
+	    return 1;
+	}
+	return 0;
+}
+string sendline(int i){
 	string s="";
 	s+=char(i/1000+'0');
 	s+=char((i%1000)/100+'0');
@@ -34,6 +46,8 @@ int sendline(int i){
 		t.setref(GetPixel(hdcMem, i*sf,j*sf));
 		s+=t.to64color();
 	}
+	return s.c_str();
+	/*
 	const char* data = s.c_str();
 	int dataSize = strlen(data);
 	int sent = sendto(sock, data, dataSize, 0, (SOCKADDR*)&destAddr, sizeof(destAddr));
@@ -42,7 +56,7 @@ int sendline(int i){
 	    closesocket(sock);
 	    WSACleanup();
 	    return 1;
-	}
+	}*/
 	//if(i%25==0) cout<<"send:"<<i<<" size:"<<dataSize<<endl;
 }
 int sendudp(){
@@ -70,8 +84,13 @@ int sendudp(){
 	    HGDIOBJ oldBitmap = SelectObject(hdcMem, hBitmap); // 选择位图到内存DC中
 	    BitBlt(hdcMem, 0, 0, width*sf, height*sf, hdc, 0, 0, SRCCOPY);
 		//
+		string st = "";
 		for(int i = 0;i<width;i++){
-			sendline(i);
+			st+=sendline(i);
+			if(i%10==0||i==width-1){
+				sendmsg(st);
+				st = "";
+			}
 		}
 		string s = "9999"+currentDateToString();
 		const char* data = s.c_str();
@@ -83,8 +102,8 @@ int sendudp(){
 		    WSACleanup();
 		    return 1;
 		}
-		if(cnt%8==0){
-			s = "9998"+gethostname();
+		if(cnt%5==0){
+			s = "9998"+gethostname()+";"+to_string(height)+"x"+to_string(width)+";"+to_string(cpuhx());
 			const char* data1 = s.c_str();
 			int dataSize1 = strlen(data1);
 			int sent1 = sendto(sock, data1, dataSize1, 0, (SOCKADDR*)&destAddr, sizeof(destAddr));

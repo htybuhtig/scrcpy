@@ -49,26 +49,9 @@ int setup() {
 	cout<<"getted hdc\n";
 	return 0;
 }
-string currentDateToString() {
-	time_t rawtime;
-	struct tm * timeinfo;
-	char buffer[80];
-
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-
-	strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
-	std::string str(buffer);
-
-	return str;
-}
 rgb getrgb(int x,int y) {
 	COLORREF color = GetPixel(hdc, x, y);
-	BYTE blue = GetBValue(color);
-	BYTE green = GetGValue(color);
-	BYTE red = GetRValue(color);
 	rgb res;
-	res.set(red,green,blue);
-	//cout<<(int)red<<" "<<(int)green<<" "<<(int)blue<<endl;
+	res.setref(color);
 	return res;
 }
